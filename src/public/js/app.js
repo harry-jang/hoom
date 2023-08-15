@@ -1,7 +1,7 @@
 const messageList = document.querySelector('ul');
 const messageForm = document.querySelector('#message');
 const nicknameForm = document.querySelector('#nick');
-const socket = new WebSocket(`ws://${window.location.host}`);
+const socket = new WebSocket(`wss://${window.location.host}`);
 
 function makeMessage(type, payload) {
     const msg = { type, payload };
