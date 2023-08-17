@@ -19,16 +19,41 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 const httpServer = http.createServer(app);
 const io = SocketIO(httpServer);
 
+function publicRooms() {
+    const {
+        sockets: {
+            adapter: {sids, rooms},
+        }
+    } = io;
+
+    const publicRooms = [];
+    rooms.forEach((_, key) => {
+        if(sids.get(key) === undefined) {
+            publicRooms.push(key);
+        }
+    });
+
+    return publicRooms;
+}
+
 io.on("connection", (socket) => {
     socket["nickname"] = "익명";
-    socket.onAny((event) => {console.log(`Socket Event : ${event}`)})
+    socket.onAny((event) => {
+        console.log(io.sockets.adapter)
+        console.log(`Socket Event : ${event}`)
+    });
     socket.on("enter_room", (roomName, done) => {
         socket.join(roomName);
         done();
         socket.to(roomName).emit("welcome", socket.nickname);
+        io.sockets.emit("room_change", publicRooms());
     });
     socket.on("disconnecting", () => {
         socket.rooms.forEach((room) => socket.to(room).emit("bye"), socket.nickname);
+    });
+
+    socket.on("disconnect", () => {
+        io.sockets.emit("room_change", publicRooms());
     });
 
     socket.on("chat_message", (msg, room, done) => {

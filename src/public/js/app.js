@@ -62,6 +62,21 @@ socket.on("bye", (nickname) => {
     addMessage(`${nickname} leaved!`);
 })
 
+socket.on("room_change", (rooms) => {
+    const roomList = welcome.querySelector("ul");
+    roomList.innerHTML = "";
+    if(rooms.length === 0) {
+        return;
+    }
+
+    
+    rooms.forEach(room => {
+        const li = document.createElement("li");
+        li.innerText = room;
+        roomList.append(li);
+    });
+});
+
 // (msg) =>{addMessage(msg)} === addMessage
 socket.on("chat_message", addMessage);
 
