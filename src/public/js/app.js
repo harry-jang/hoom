@@ -4,10 +4,14 @@ const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
 const camerasSelect = document.getElementById("cameras");
+const welcome = document.getElementById("welcome");
+const call = document.getElementById("call");
 
 let myStream;
 let muted = false;
 let cameraOff = false;
+
+call.hidden = true;
 
 
 async function getCameras() {
@@ -33,7 +37,7 @@ async function getMedia(deviceId) {
 
     const initialConstrains = {
         audio: true,
-        video: { facingMode: "environment" },
+        video: { facingMode: "user" },
       }
     
     const cameraConstrains = {
@@ -58,8 +62,6 @@ async function getMedia(deviceId) {
         console.log(e)
     }
 }
-
-getMedia()
 
 function handleMuteClick() {
     
@@ -92,3 +94,15 @@ async function handleCameraChange() {
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 camerasSelect.addEventListener("input", handleCameraChange);
+
+welcomeForm = welcome.querySelector("form");
+
+function handleWelcomeSubmit(event) {
+    event.preventDefault();
+    const input = welcomeForm.querySelector("input");
+    input.value;
+    socket.emit("join_room", input.value);
+    input.value = "";
+}
+
+welcomeForm.addEventListener("submit", handleWelcomeSubmit);
