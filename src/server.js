@@ -1,11 +1,13 @@
 import http from "http";
 import express from "express";
-import SocketIO from "socket.io";
+import { Server } from "socket.io";
+import { instrument } from "@socket.io/admin-ui";
+
 
 const app = express();
 
 app.set('view engine', "pug");
-app.set("views", __dirname + "/views" );
+app.set("views", __dirname + "/views");
 app.use("/public", express.static(__dirname + "/public"))
 
 app.get("/", (_, res) => res.render("home"));
@@ -17,23 +19,36 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
 // 같은 서버에 http , ws 둘다 기동하는 방법
 const httpServer = http.createServer(app);
-const io = SocketIO(httpServer);
+const io = new Server(httpServer, {
+    cors: {
+        origin: ["https://admin.socket.io"],
+        credentials: true,
+    },
+});
+
+instrument(io, {
+    auth: false
+});
 
 function publicRooms() {
     const {
         sockets: {
-            adapter: {sids, rooms},
+            adapter: { sids, rooms },
         }
     } = io;
 
     const publicRooms = [];
     rooms.forEach((_, key) => {
-        if(sids.get(key) === undefined) {
+        if (sids.get(key) === undefined) {
             publicRooms.push(key);
         }
     });
 
     return publicRooms;
+}
+
+function countRommMember(roomName) {
+    return io.sockets.adapter.rooms.get(roomName)?.size;
 }
 
 io.on("connection", (socket) => {
@@ -44,12 +59,12 @@ io.on("connection", (socket) => {
     });
     socket.on("enter_room", (roomName, done) => {
         socket.join(roomName);
-        done();
-        socket.to(roomName).emit("welcome", socket.nickname);
+        done(countRommMember(roomName));
+        socket.to(roomName).emit("welcome", socket.nickname, countRommMember(roomName));
         io.sockets.emit("room_change", publicRooms());
     });
     socket.on("disconnecting", () => {
-        socket.rooms.forEach((room) => socket.to(room).emit("bye"), socket.nickname);
+        socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname, countRommMember(room) - 1));
     });
 
     socket.on("disconnect", () => {

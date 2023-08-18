@@ -16,11 +16,11 @@ function addMessage(message) {
     ul.appendChild(li);
 }
 
-function showRoom() {
+function showRoom(userCount) {
     welcome.hidden = true;
     room.hidden = false;
     const h3 = room.querySelector("h3");
-    h3.innerText = `Room ${roomName}`;
+    h3.innerText = `Room ${roomName} (${userCount})`;
     const msgForm = room.querySelector("#msg");
     
     msgForm.addEventListener("submit", handleMessageSubmit)
@@ -50,15 +50,21 @@ function handleRoomSubmit(event) {
     input.value  = "";
 }
 
+function refreshRoomTitle(newCount) {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName} (${newCount})`;
+}
 
 roomNameForm.addEventListener("submit" , handleRoomSubmit);
 nameForm.addEventListener("submit", handleNicknameSubmit)
 
-socket.on("welcome", (nickname) => {
+socket.on("welcome", (nickname, newCount) => {
+    refreshRoomTitle(newCount);
     addMessage(`${nickname} joined!`);
 })
 
-socket.on("bye", (nickname) => {
+socket.on("bye", (nickname, newCount) => {
+    refreshRoomTitle(newCount);
     addMessage(`${nickname} leaved!`);
 })
 
@@ -69,7 +75,6 @@ socket.on("room_change", (rooms) => {
         return;
     }
 
-    
     rooms.forEach(room => {
         const li = document.createElement("li");
         li.innerText = room;
