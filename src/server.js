@@ -28,11 +28,26 @@ instrument(io, {
     auth: false
 });
 
+const limitUserCount = 2;
+
+function countRoomMember(roomName) {
+    return io.sockets.adapter.rooms.get(roomName)?.size;
+}
 
 io.on("connection", (socket) => {
-    socket.on("join_room", (roomName) => {
-        socket.join(roomName);
+    socket.on("join_room", (roomName, done) => {
+        let roomEnable = true;
+        const roomMember = countRoomMember(roomName);
+        if(roomMember+1 > limitUserCount) {  // 시도하는 유저의 공간이 있어야 하므로 +1
+            roomEnable = false;
+        } else {
+            socket.join(roomName);
+        }
+        done(roomEnable, roomName);
+    });
+    socket.on("ready", (roomName) => {
         socket.to(roomName).emit("welcome");
+        console.log("welcome");
     });
     socket.on("offer", (offer, roomName) => {
         socket.to(roomName).emit("offer", offer);

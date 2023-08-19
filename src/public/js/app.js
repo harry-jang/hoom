@@ -104,24 +104,34 @@ muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 camerasSelect.addEventListener("input", handleCameraChange);
 
-
-
 // Welcome From (join a room)
 const welcome = document.getElementById("welcome");
 welcomeForm = welcome.querySelector("form");
 
 async function initCall() {
+    console.log("init call");
     welcome.hidden = true;
     call.hidden = false;
     await getMedia();
     makeConnection();
 }
-async function handleWelcomeSubmit(event) {
+
+async function try_join_room(isSuccess, joinedRoomName) {
+    console.log("isSuccess=", isSuccess);
+    if(isSuccess) {
+        roomName = joinedRoomName;
+        await initCall();
+        socket.emit("ready", roomName);
+    } else {
+        alert("정원이 초과되었습니다.");
+    }
+}
+ 
+function handleWelcomeSubmit(event) {
     event.preventDefault();
     const input = welcomeForm.querySelector("input");
-    await initCall();
-    socket.emit("join_room", input.value);
-    roomName = input.value; 
+    socket.emit("join_room", input.value, try_join_room);
+
     input.value = "";
 }
 
