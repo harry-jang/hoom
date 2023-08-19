@@ -10,7 +10,7 @@ const call = document.getElementById("call");
 let myStream;
 let muted = false;
 let cameraOff = false;
-let rommName;
+let roomName;
 call.hidden = true;
 let myPeerConnection;
 
